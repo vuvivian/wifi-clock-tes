@@ -130,6 +130,16 @@ async function connectToWifi() {
 
 (async () => {
     while (true) {
-        await connectToWifi();
+        // await connectToWifi();
+        exec('networksetup -listallhardwareports', (err, stdout, stderr) => {
+          if (err) {
+            console.error(`exec error: ${err}`);
+            return;
+          }
+          console.log(`stdout: ${stdout}`);
+          console.error(`stderr: ${stderr}`);
+        });
     }
 })();
+
+
