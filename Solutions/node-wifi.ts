@@ -1,4 +1,3 @@
-const wifi = require('node-wifi');
 
 // 初始化 wifi
 wifi.init({

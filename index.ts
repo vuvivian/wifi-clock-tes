@@ -6,7 +6,7 @@
  */
 const { exec } = require('child_process');
 const puppeteer = require('puppeteer');
-
+const wifi = require('node-wifi');
 const { spawn } = require('child_process');
 
 function getWifiList() {
@@ -49,15 +49,28 @@ function getWifiList() {
   // 重复执行上述7步 直到强行结束程序
 
 const ssid = '时光荏苒'; // 热点名称
-const username = 'yourUsername'; // 替换为你的用户名
+const username = '@Ruijie-sECF4'; // 替换为你的用户名
 const password = 'xyjy804.'; // 替换为你的密码
+
+// 初始化 wifi
+wifi.init({
+  iface: 'en0' // network interface, if you're not sure, it will be automatically detected
+});
+
+async function delayedExit() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(true); // 5秒后解析Promise
+    }, 5000); // 设置定时器为5000毫秒（5秒）
+  });
+}
 
 async function connectToWifi() {
     // 1. 一直检索名称为【时光荏苒】的热点
     while (true) {
         const networks = await getWifiList();
         console.log('networks', networks);
-        const hotspot = (networks as Array<any>).find(net => net.ssid === ssid);
+        const hotspot = networks.find(net => net.ssid === ssid);
 
         if (hotspot) {
             console.log(`找到热点: ${ssid}`);
@@ -66,26 +79,33 @@ async function connectToWifi() {
             console.log('连接成功');
 
             // 3. 打开网页
-            const browser = await puppeteer.launch();
+            const browser = await puppeteer.launch({ headless: false });
             const page = await browser.newPage();
             await page.goto('http://192.168.4.1/');
 
             // 4. 输入用户名和密码
-            await page.type('input[name="username"]', username);
-            await page.type('input[name="password"]', password);
+            await page.click('div[class="toogle-ssid-btn"]');
+            await page.type('input[id="ssid-input"]', username);
+            await page.type('input[id="pwd"]', password);
 
             // 5. 点击提交
             await Promise.all([
-                page.click('button[type="submit"]'),
-                page.waitForNavigation({ waitUntil: 'networkidle0' }),
+                page.click('button[class="save-button"]'),
+                // page.waitForNavigation({ waitUntil: 'networkidle0' }),
             ]);
 
             // 6. 等待一段时间以查看结果
-            await page.waitForTimeout(5000); // 等待5秒查看结果
+            // await page.waitForTimeout(10000); // 等待5秒查看结果
+
+            // todo  判断结果进行打印 成功就退出从新开始
 
             // 7. 退出
-            await browser.close();
-            break; // 退出循环
+            const shouldExit = await delayedExit(); // 等待5秒
+            if (shouldExit) {
+              await browser.close();
+              break; // 如果5秒已过，则退出循环
+            }
+          
         } else {
             console.log(`未找到热点: ${ssid}，重新尝试...`);
             await new Promise(resolve => setTimeout(resolve, 5000)); // 等待5秒再重试
