@@ -4,9 +4,9 @@
   "description": "自动化测试",
   "main": "index.js",
   "scripts": {
-    "test": "sudo node index.ts"
+    "test": "node index.ts"
   },
-  "author": "",
+  "author": "vuvivian",
   "license": "ISC",
   "dependencies": {
     "node-wifi": "^2.0.16",
